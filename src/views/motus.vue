@@ -1,0 +1,229 @@
+<template>
+  <h2 class="title">
+    C'EST MOTUS EN GROS QUOI
+  </h2>
+  <div class="container">
+
+    <div class="message noselect">
+
+    </div>
+
+    <div class="mobileMessage">
+      Appuie sur la grille pour entrer des lettres 😉
+    </div>
+
+    <div class="btnAndGrid">
+      <div>
+        <button type="button" class="resetbtn">Nouveau mot (espace)</button>
+        <div class="streakContainer">
+          Streak :
+          <div class="streak">
+          </div>
+        </div>
+      </div>
+      <input type="text" class="mobileInput"/>
+      <div class="grid">
+
+      </div>
+      <div class="history">
+
+      </div>
+    </div>
+    <div class="tuto">
+      <div class="subtuto">
+        <div class="letter CORRECT">
+          A
+        </div>
+        <span>
+                Lettre correcte
+            </span>
+      </div>
+      <div class="subtuto">
+        <div class="letter MISPLACED">
+          A
+        </div>
+        <span>
+                Lettre mal placée
+            </span>
+      </div>
+    </div>
+  </div>
+
+</template>
+
+<script>
+export default {
+  name: "motus"
+}
+</script>
+
+<style scoped>
+body {
+  background-color: #264653;
+  color: #edf2f4;
+  font-size: 3.5vh;
+}
+
+
+.title {
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+
+@media only screen and (min-width: 769px) {
+
+  .mobileInput {
+    display: none;
+    background-color: #264653;
+    border: none;
+  }
+
+  .btnAndGrid {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    width: 100%;
+  }
+
+  .mobileMessage {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+
+  .mobileInput {
+    opacity: 0;
+  }
+
+  .btnAndGrid {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .resetbtn {
+    margin-top: 2vh;
+    order: 2;
+    min-width: 25vw;
+  }
+
+  .letter {
+    min-width: 8vw !important;
+    min-height: 8vw !important;
+  }
+
+  .mobileMessage {
+    text-align: center;
+    margin-bottom: 5vh;
+    font-size: 0.8em;
+  }
+
+}
+
+.resetbtn {
+  background-color: #e9c46a;
+  color: #1a2f38;
+  border: none;
+  max-width: 40%;
+  padding: 2vh 2vw;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 2.5vh;
+  justify-self: center;
+}
+
+.resetbtn:hover {
+  background-color: #f4a261;
+  cursor: pointer;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 10vh;
+}
+
+.message {
+  opacity: 0;
+  text-align: center;
+  color: #e76f51;
+  margin-bottom: 3vh;
+  transition: opacity cubic-bezier(.08, .82, .17, 1) 1s;
+}
+
+.letterMessage {
+  color: #e9c46a;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
+                                   supported by Chrome, Edge, Opera and Firefox */
+}
+
+.message:hover {
+  cursor: default;
+}
+
+.grid {
+  justify-self: center;
+  text-align: center;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  grid-auto-columns: auto;
+}
+
+.letter {
+  border: #7f818d 1px solid;
+  background-color: #1a2f38;
+  height: 10vh;
+  min-width: 5vw;
+  color: #e9c46a;
+  font-size: calc(1.3em + 1vmin);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.letter.CORRECT {
+  background-color: #e9c46a;
+  color: #1a2f38;
+}
+
+.letter.MISPLACED {
+  text-decoration: underline;
+}
+
+.tuto {
+  margin-top: 10vh;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.subtuto {
+  margin-bottom: 3vh;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.subtuto span {
+  margin-left: 1vw;
+}
+
+.streakContainer {
+  margin-top: 3vh;
+}
+</style>
