@@ -1,15 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
+import HomeView from "@/views/HomeView";
+import Ckancfini from "@/views/Ckancfini";
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: () => import('../views/HomeView.vue')
+    component: HomeView
   },
   {
     path: '/ckancfini',
     name: 'C-kan-c-fini',
-    component: () => import('../views/Ckancfini.vue')
+    component: Ckancfini
   }
 ]
 
