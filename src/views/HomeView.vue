@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h1 class="text-h3">oui</h1>
+    <h1 class="text-h3">{{ t('title')}}</h1>
     <v-divider></v-divider>
     <v-row justify="center" class="cards">
       <v-col v-for="item in items"
@@ -10,7 +10,8 @@
             @click="redirect(item.link)"
         >
           <v-img
-              class="text-white align-end"
+              class="align-end"
+              :class="'text-'+item.text"
               height="200px"
               :src="item.image"
               cover
@@ -25,8 +26,17 @@
 
 <script>
 import notesMDImage from '@/assets/md.png'
-export default {
+import ckancfiniImage from '@/assets/ckancfini.png'
+import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
+export default defineComponent ({
   name: 'HomeView',
+  setup() {
+      const { t } = useI18n();
+      return {
+        t,
+      };
+  },
   data() {
     return {
       items: [
@@ -34,7 +44,15 @@ export default {
           title: "Notes MD",
           link: "https://www.md.eloichr.xyz",
           image: notesMDImage,
-          description: "Markdown notes"
+          description: "Markdown notes",
+          text: "white"
+        },
+        {
+          title: "C'est quand c'est fini ?",
+          link: window.location.href + "ckancfini",
+          image: ckancfiniImage,
+          description: "Savoir combien de temps il reste avant la fin...  ",
+          text: "black"
         }
       ]
     }
@@ -44,7 +62,7 @@ export default {
       window.location.href = link
     }
   }
-}
+})
 </script>
 <style>
 .cards {
