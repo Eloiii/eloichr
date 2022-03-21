@@ -1,11 +1,11 @@
 <template>
-  <v-container fluid style="height: 100vh;" class="d-flex flex-column">
-    <v-row class="mt-16 mx-10 text-center" align="center" justify="center">
-      <h1 class="text-h1">
+  <v-container fluid class="d-flex flex-column">
+    <v-row class="mx-10 text-center" align="center" justify="center" style="height: 90vh">
+      <div class="text-md-h1 text-h2">
         {{ timeRemaining }}
-      </h1>
+      </div>
     </v-row>
-    <v-row justify="center" align="center" class="flex-column my-n16">
+    <v-row justify="center" align="center" class="flex-column mx-10 text-center mb-n16" style="height: 10vh">
       <div class="text-caption" style="font-size: 1em !important;">
         {{ citation }}
       </div>
@@ -19,7 +19,7 @@
 <script>
 export default {
   name: "C-kan-c-fini",
-  data () {
+  data() {
     return {
       timeRemaining: null,
       citation: null,
@@ -38,9 +38,9 @@ export default {
       const daysRemaining = Math.floor(msRemaining / (24 * 60 * 60 * 1000))
       const daysms = msRemaining % (24 * 60 * 60 * 1000)
       const hoursRemaining = Math.floor(daysms / (60 * 60 * 1000))
-      const hoursms = msRemaining % (60*60*1000);
-      const minutesRemaining = Math.floor(hoursms / (60*1000));
-      const minutesms = msRemaining % (60*1000);
+      const hoursms = msRemaining % (60 * 60 * 1000);
+      const minutesRemaining = Math.floor(hoursms / (60 * 1000));
+      const minutesms = msRemaining % (60 * 1000);
       const secondsRemaining = Math.floor(minutesms / 1000);
       this.timeRemaining = daysRemaining + ' jours ' + hoursRemaining + ' heures ' + minutesRemaining + ' minutes et ' + secondsRemaining + ' secondes ' + 'avant le diplôme'
     },

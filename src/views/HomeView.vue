@@ -2,11 +2,13 @@
   <v-container>
     <h1 class="text-h3">{{ t('title')}}</h1>
     <v-divider></v-divider>
-    <v-row justify="center" class="cards">
+    <v-row justify="space-around" class="cards">
       <v-col v-for="item in items"
-             :key="item.title">
+             :key="item.title"
+             cols="12"
+             sm="5"
+      >
         <v-card
-            max-width="500"
             @click="redirect(item.link)"
         >
           <v-img
@@ -44,14 +46,12 @@ export default defineComponent ({
           title: "Notes MD",
           link: "https://www.md.eloichr.xyz",
           image: notesMDImage,
-          description: "Markdown notes",
           text: "white"
         },
         {
           title: "C'est quand c'est fini ?",
           link: window.location.href + "ckancfini",
           image: ckancfiniImage,
-          description: "Savoir combien de temps il reste avant la fin...  ",
           text: "black"
         }
       ]
