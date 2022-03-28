@@ -1,9 +1,17 @@
 <template>
+<!--  TODO MESSAGE TYPE CHANGER EN FONCTION DU MESSAGE-->
+<!--  TODO AJOUTER OPTION MOT CONJUGUES-->
+<!--  TODO FIX ERREURS DANS CONSOLE-->
+<!--  TODO AJOUTER HISTORIQUE-->
+<!--  TODO FIX DARK MOD DEGUEULASSE-->
+<!--  TODO VOIR POUR MOBILE-->
+<!--  TODO FIX LETTRE EN PLUS A LA FIN QUAND GAGNE-->
+<!--  TODO TEST PERDU (6 LIGNES PLEINES SANS TROUVER)-->
   <v-container>
     <v-row justify="center" style="height: 150px;">
       <h1 class="text-h2">Motus en gros</h1>
     </v-row>
-    <v-row justify="center" v-if="message">
+    <v-row justify="center" v-if="message.length !== 0">
       <v-col cols="12" md="4">
         <v-alert type="error"> {{ message }}</v-alert>
       </v-col>
@@ -13,23 +21,25 @@
     </v-row>
     <v-row class="mt-16" justify="space-around">
       <v-col cols="2">
-        <v-btn size="large">
-          <v-icon class="ml-n3 mr-2">
-            mdi-refresh
-          </v-icon>
-          NOUVEAU MOT
-        </v-btn>
-        <p>
-          :fire:
-        </p>
+        <div class="d-inline-flex justify-center flex-column align-center">
+          <v-btn size="large" @click="newGame">
+            <v-icon class="ml-n3 mr-2">
+              mdi-refresh
+            </v-icon>
+            NOUVEAU MOT
+          </v-btn>
+          <p class="text-h3 text-align mt-5">
+            {{ streak < 0 ? streak + '🥶' : streak + '🔥' }}
+          </p>
+        </div>
       </v-col>
-      <v-col cols="7" v-if="word && displayableLetters !== []">
+      <v-col cols="7" v-if="word && displayableLetters !== [] && displayableLetters[0]?.letter">
         <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
           <v-col v-for="col in word.length" :key="col" cols="1" class="my-3 mx-1 pa-0 pb-1">
-            <v-card tile outlined class="pa-2 text-center" elevation="1" :color="displayableLetters[col-1].color">
+            <v-card tile outlined class="pa-2 text-center" elevation="1" :color="(row - 1) < currentGuess ? guessedWords[row - 1][col-1].color : 'transparent'">
               <span v-if="(row - 1) === currentGuess" class="text-h2"> {{displayableLetters[col-1].letter}} </span>
-              <span v-else-if="(row - 1) < currentGuessing" class="text-h2"> {{guessedWords[row - 1][col - 1]}} </span>
-              <span v-else class="text-h2"> {{guessedLetters[col - 1]}} </span>
+              <span v-else-if="(row - 1) < currentGuess" class="text-h2"> {{guessedWords[row - 1][col - 1].letter}} </span>
+              <span v-else class="text-h2"> &nbsp; </span>
             </v-card>
           </v-col>
         </v-row>
@@ -40,7 +50,7 @@
         </v-progress-circular>
       </v-col>
       <v-col cols="2">
-        ici c'est la streak
+        ici c'est l'historique
       </v-col>
     </v-row>
   </v-container>
@@ -60,6 +70,7 @@ export default {
       guessedLetters: [],
       guessedWords: [],
       currentGuessing: [],
+      streak: 0,
       displayableLetters: [],
       lettersStat: null,
     }
@@ -67,7 +78,7 @@ export default {
   methods: {
     async newGame() {
       this.initVars()
-      await this.getNewWord(0, 5, false)
+      await this.getNewWord(0, 7, false)
       this.initLetterGuesses()
       this.buildDisplayableLetters()
       // this.setMobileEvents()
@@ -91,12 +102,18 @@ export default {
     async getNewWord(min, max, conjugate) {
       const request = await fetch("https://api.dicolink.com/v1/mots/motauhasard?&minlong=" + min + "&maxlong=" + max + "&verbeconjugue=" + conjugate + "&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU")
       const response = await request.json()
-      const correctWord = response[0].mot.toUpperCase()
-      this.word = {
-        correctWord: correctWord,
-        firstLetter: correctWord.charAt(0),
-        length: correctWord.length
+      if(response) {
+        const correctWord = response[0].mot.toUpperCase()
+        this.word = {
+          correctWord: correctWord,
+          firstLetter: correctWord.charAt(0),
+          length: correctWord.length
+        }
+        this.getLettersStat()
+      } else {
+        this.displayMessage("Erreur lors de la récupération du mot, veuillez réessayer dans quelques instants", true)
       }
+
     },
     async parseKeyEvent(e) {
       //space
@@ -124,11 +141,12 @@ export default {
         this.buildDisplayableLetters()
     },
     buildDisplayableLetters() {
-      if(this.currentGuessing !== 0) {
-        this.guessedWords.push(this.currentGuessing)
-      }
       const displayableLetters = []
-      for (let letter = 0; letter < this.word.length; letter++) {
+      displayableLetters[0] = {
+        letter : this.word.firstLetter,
+        color : "green"
+      }
+      for (let letter = 1; letter < this.word.length; letter++) {
         let replacementLetter;
         if (this.currentGuessing.length !== 0)
           replacementLetter = "."
@@ -136,7 +154,7 @@ export default {
           replacementLetter = this.guessedLetters[letter] || "."
         const data = {
           letter : this.currentGuessing[letter] || replacementLetter,
-          color : this.displayableLetters.color || 'transparent'
+          color : this.displayableLetters[letter]?.color || 'transparent'
         }
         displayableLetters.push(data)
         this.displayableLetters = displayableLetters
@@ -183,13 +201,14 @@ export default {
       const link = "https://api.dicolink.com/v1/mot/"+ word +"/definitions?limite=200&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU"
       const request = await fetch(link)
       const response = await request.json()
-      return response.error === undefined;
+      return response.error === undefined && response?.status !== 429
 
     },
-    testWord(word) {
+    async testWord(word) {
       if(word.charAt(0) !== this.word.correctWord.charAt(0))
         return "WRONGFIRSTLETTER"
-      if(!this.wordExists(word))
+      const doesWordExist = await this.wordExists(word)
+      if(!doesWordExist)
         return "NOTAWORD"
       let res = []
       for (let i = 0; i < word.length; i++) {
@@ -229,15 +248,15 @@ export default {
     getColor(status) {
       switch(status) {
         case "CORRECT":
-          return "green"
+          return "red-lighten-1"
         case "MISPLACED":
-          return "orange"
+          return "light-green"
         default:
           return "transparent"
       }
     },
     async parseRes(res) {
-      console.log(res)
+      res = await res;
       if (res === "NOTAWORD") {
         const completeGuessing = this.mergeArrays(this.currentGuessing, this.guessedLetters)
         const guessingword = completeGuessing.join("")
@@ -249,7 +268,6 @@ export default {
         return
       }
       for (let letter = 0; letter < this.word.length; letter++) {
-        console.log(this.getColor(res[letter].status))
         this.displayableLetters[letter].color = this.getColor(res[letter].status)
         if (res[letter].status === "CORRECT") {
           this.guessedLetters[letter] = res[letter].letter
@@ -257,9 +275,11 @@ export default {
       }
       this.currentGuess++;
       const gameOver = await this.checkGameOver()
+      this.guessedWords.push(this.displayableLetters)
       this.currentGuessing = []
-      if (!gameOver)
+      if (!gameOver) {
         this.buildDisplayableLetters()
+      }
     },
     async checkGameOver() {
       if (this.currentGuess >= this.GUESS_COUNT && this.guessedLetters.includes(".")) {
@@ -274,7 +294,9 @@ export default {
           return false
       }
       if(this.currentGuessing.join("") === this.word.correctWord) {
-        this.displayMessage("GG BG 🎉", false)
+        this.displayMessage("Bien joué !", false)
+        this.guessedWords.push(this.displayableLetters)
+        this.currentGuess++
         this.isGameOver = true
         this.streak + 1 <= 0 ? this.streak = 1 : this.streak +=1
         // await this.updateHistory(true)
