@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from "@/views/HomeView";
 import Ckancfini from "@/views/Ckancfini";
+import motus from "@/views/motus";
+
 const routes = [
   {
     path: '/',
@@ -11,6 +13,11 @@ const routes = [
     path: '/ckancfini',
     name: 'C-kan-c-fini',
     component: Ckancfini
+  },
+  {
+    path: '/motus',
+    name: 'motus-en-gros',
+    component: motus
   }
 ]
 

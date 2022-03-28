@@ -1,229 +1,294 @@
 <template>
-  <h2 class="title">
-    C'EST MOTUS EN GROS QUOI
-  </h2>
-  <div class="container">
+  <v-container>
+    <v-row justify="center" style="height: 150px;">
+      <h1 class="text-h2">Motus en gros</h1>
+    </v-row>
+    <v-row justify="center" v-if="message">
+      <v-col cols="12" md="4">
+        <v-alert type="error"> {{ message }}</v-alert>
+      </v-col>
+    </v-row>
+    <v-row class="d-sm-none">
+      {{ mobileMessage }}
+    </v-row>
+    <v-row class="mt-16" justify="space-around">
+      <v-col cols="2">
+        <v-btn size="large">
+          <v-icon class="ml-n3 mr-2">
+            mdi-refresh
+          </v-icon>
+          NOUVEAU MOT
+        </v-btn>
+        <p>
+          :fire:
+        </p>
+      </v-col>
+      <v-col cols="7" v-if="word && displayableLetters !== []">
+        <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
+          <v-col v-for="col in word.length" :key="col" cols="1" class="my-3 mx-1 pa-0 pb-1">
+            <v-card tile outlined class="pa-2 text-center" elevation="1" :color="displayableLetters[col-1].color">
+              <span v-if="(row - 1) === currentGuess" class="text-h2"> {{displayableLetters[col-1].letter}} </span>
+              <span v-else-if="(row - 1) < currentGuessing" class="text-h2"> {{guessedWords[row - 1][col - 1]}} </span>
+              <span v-else class="text-h2"> {{guessedLetters[col - 1]}} </span>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col v-else class="text-center">
+        <v-progress-circular indeterminate="true" size="100">
 
-    <div class="message noselect">
-
-    </div>
-
-    <div class="mobileMessage">
-      Appuie sur la grille pour entrer des lettres 😉
-    </div>
-
-    <div class="btnAndGrid">
-      <div>
-        <button type="button" class="resetbtn">Nouveau mot (espace)</button>
-        <div class="streakContainer">
-          Streak :
-          <div class="streak">
-          </div>
-        </div>
-      </div>
-      <input type="text" class="mobileInput"/>
-      <div class="grid">
-
-      </div>
-      <div class="history">
-
-      </div>
-    </div>
-    <div class="tuto">
-      <div class="subtuto">
-        <div class="letter CORRECT">
-          A
-        </div>
-        <span>
-                Lettre correcte
-            </span>
-      </div>
-      <div class="subtuto">
-        <div class="letter MISPLACED">
-          A
-        </div>
-        <span>
-                Lettre mal placée
-            </span>
-      </div>
-    </div>
-  </div>
-
+        </v-progress-circular>
+      </v-col>
+      <v-col cols="2">
+        ici c'est la streak
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
+
 export default {
-  name: "motus"
+  name: "motus-en-gros",
+  data () {
+    return {
+      GUESS_COUNT: 6,
+      word: null,
+      message : "",
+      isGameOver: false,
+      currentGuess: 0,
+      guessedLetters: [],
+      guessedWords: [],
+      currentGuessing: [],
+      displayableLetters: [],
+      lettersStat: null,
+    }
+  },
+  methods: {
+    async newGame() {
+      this.initVars()
+      await this.getNewWord(0, 5, false)
+      this.initLetterGuesses()
+      this.buildDisplayableLetters()
+      // this.setMobileEvents()
+      // this.setStreak()
+    },
+    initLetterGuesses() {
+      for (let letterCount = 0; letterCount < this.word.length - 1; letterCount++) {
+        if (letterCount === 0)
+          this.guessedLetters.push(this.word.firstLetter)
+        this.guessedLetters.push(".")
+      }
+    },
+    initVars() {
+      this.isGameOver = false
+      this.currentGuess = 0
+      this.guessedLetters = []
+      this.currentGuessing = []
+      this.guessedWords = []
+      this.displayableLetters = []
+    },
+    async getNewWord(min, max, conjugate) {
+      const request = await fetch("https://api.dicolink.com/v1/mots/motauhasard?&minlong=" + min + "&maxlong=" + max + "&verbeconjugue=" + conjugate + "&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU")
+      const response = await request.json()
+      const correctWord = response[0].mot.toUpperCase()
+      this.word = {
+        correctWord: correctWord,
+        firstLetter: correctWord.charAt(0),
+        length: correctWord.length
+      }
+    },
+    async parseKeyEvent(e) {
+      //space
+      if (e.keyCode === 32) {
+        e.preventDefault()
+        await this.newGame()
+        return
+      }
+      if (this.isGameOver)
+        return
+      //a-z
+      if (e.keyCode >= 65 && e.keyCode <= 90 && this.currentGuessing.length < this.word.length) {
+        this.currentGuessing.push(e.key.toUpperCase())
+      }
+      //backspace
+      if (e.keyCode === 8) {
+        this.currentGuessing.pop()
+      }
+      //enter
+      if (e.keyCode === 13) {
+        e.preventDefault()
+        await this.validateGuess()
+      }
+      if(!this.isGameOver)
+        this.buildDisplayableLetters()
+    },
+    buildDisplayableLetters() {
+      if(this.currentGuessing !== 0) {
+        this.guessedWords.push(this.currentGuessing)
+      }
+      const displayableLetters = []
+      for (let letter = 0; letter < this.word.length; letter++) {
+        let replacementLetter;
+        if (this.currentGuessing.length !== 0)
+          replacementLetter = "."
+        else
+          replacementLetter = this.guessedLetters[letter] || "."
+        const data = {
+          letter : this.currentGuessing[letter] || replacementLetter,
+          color : this.displayableLetters.color || 'transparent'
+        }
+        displayableLetters.push(data)
+        this.displayableLetters = displayableLetters
+      }
+    },
+    mergeArrays(array1, array2) {
+      let res = []
+      for (let i = 0; i < array1.length; i++) {
+        if (array1[i] !== ".")
+          res.push(array1[i])
+        else res.push(array2[i])
+      }
+      return res
+    },
+    displayMessage(text, resetGuess) {
+      this.message = text
+      if (resetGuess)
+        this.currentGuessing = []
+      this.sleep(4000).then(() => this.message = "")
+    },
+    async validateGuess() {
+      const completeGuessing = this.mergeArrays(this.currentGuessing, this.guessedLetters)
+      if (completeGuessing.length === this.word.length) {
+        const guessingword = completeGuessing.join("")
+        const res = this.testWord(guessingword)
+        await this.parseRes(res)
+      } else {
+        this.displayMessage("Le mot est trop court 😮‍💨", false)
+      }
+    },
+    getLettersStat() {
+      this.lettersStat = new Map()
+      let seenLetters = []
+      for (let letter = 0; letter < this.word.length; letter++) {
+        const currLetter = this.word.correctWord.charAt(letter)
+        if(!seenLetters.includes(currLetter)) {
+          seenLetters.push(currLetter)
+          const occ = this.word.correctWord.split(currLetter).length - 1;
+          this.lettersStat.set(currLetter, occ)
+        }
+      }
+    },
+    async wordExists(word) {
+      const link = "https://api.dicolink.com/v1/mot/"+ word +"/definitions?limite=200&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU"
+      const request = await fetch(link)
+      const response = await request.json()
+      return response.error === undefined;
+
+    },
+    testWord(word) {
+      if(word.charAt(0) !== this.word.correctWord.charAt(0))
+        return "WRONGFIRSTLETTER"
+      if(!this.wordExists(word))
+        return "NOTAWORD"
+      let res = []
+      for (let i = 0; i < word.length; i++) {
+        res[i] = ""
+      }
+      let cloneLettersStats = new Map(this.lettersStat)
+      for (let letter = 0; letter < word.length; letter++) {
+        const currLetter = word.charAt(letter)
+        const currLetterocc = cloneLettersStats.get(currLetter)
+        if (currLetter === this.word.correctWord.charAt(letter)) {
+          res[letter] = {
+            letter: currLetter,
+            status: "CORRECT"
+          }
+          cloneLettersStats.set(currLetter, currLetterocc - 1)
+        }
+      }
+      for (let letter = 0; letter < word.length; letter++) {
+        const currLetter = word.charAt(letter)
+        const currLetterocc = cloneLettersStats.get(currLetter)
+        if(currLetterocc > 0 && res[letter] === "") {
+          res[letter] = {
+            letter: currLetter,
+            status: "MISPLACED"
+          }
+          cloneLettersStats.set(currLetter, currLetterocc - 1)
+        }
+        else if(res[letter] === ""){
+          res[letter] = {
+            letter: word.charAt(letter),
+            status: "WRONG"
+          }
+        }
+      }
+      return res
+    },
+    getColor(status) {
+      switch(status) {
+        case "CORRECT":
+          return "green"
+        case "MISPLACED":
+          return "orange"
+        default:
+          return "transparent"
+      }
+    },
+    async parseRes(res) {
+      console.log(res)
+      if (res === "NOTAWORD") {
+        const completeGuessing = this.mergeArrays(this.currentGuessing, this.guessedLetters)
+        const guessingword = completeGuessing.join("")
+        this.displayMessage(guessingword + " n'est pas un mot dans mon dictionnaire 🤨", true)
+        return
+      }
+      if (res === "WRONGFIRSTLETTER") {
+        this.displayMessage("Le mot doit commencer par un " + this.word.firstLetter + " 🙄", true)
+        return
+      }
+      for (let letter = 0; letter < this.word.length; letter++) {
+        console.log(this.getColor(res[letter].status))
+        this.displayableLetters[letter].color = this.getColor(res[letter].status)
+        if (res[letter].status === "CORRECT") {
+          this.guessedLetters[letter] = res[letter].letter
+        }
+      }
+      this.currentGuess++;
+      const gameOver = await this.checkGameOver()
+      this.currentGuessing = []
+      if (!gameOver)
+        this.buildDisplayableLetters()
+    },
+    async checkGameOver() {
+      if (this.currentGuess >= this.GUESS_COUNT && this.guessedLetters.includes(".")) {
+        this.displayMessage("Perdu... 😔 Le mot était " + this.word.correctWord, false)
+        this.isGameOver = true
+        this.streak - 1 >= 0 ? this.streak = -1 : this.streak -=1
+        // await this.updateHistory(false)
+        return true
+      }
+      for (let guessedLetter of this.guessedLetters) {
+        if (guessedLetter === ".")
+          return false
+      }
+      if(this.currentGuessing.join("") === this.word.correctWord) {
+        this.displayMessage("GG BG 🎉", false)
+        this.isGameOver = true
+        this.streak + 1 <= 0 ? this.streak = 1 : this.streak +=1
+        // await this.updateHistory(true)
+        return true
+      }
+      return false
+    },
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  },
+  async created() {
+    document.addEventListener('keydown', this.parseKeyEvent);
+    this.newGame().then()
+  }
 }
 </script>
-
-<style scoped>
-body {
-  background-color: #264653;
-  color: #edf2f4;
-  font-size: 3.5vh;
-}
-
-
-.title {
-  text-align: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-}
-
-
-@media only screen and (min-width: 769px) {
-
-  .mobileInput {
-    display: none;
-    background-color: #264653;
-    border: none;
-  }
-
-  .btnAndGrid {
-    display: inline-grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: center;
-    width: 100%;
-  }
-
-  .mobileMessage {
-    display: none;
-  }
-}
-
-@media only screen and (max-width: 768px) {
-
-  .mobileInput {
-    opacity: 0;
-  }
-
-  .btnAndGrid {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .resetbtn {
-    margin-top: 2vh;
-    order: 2;
-    min-width: 25vw;
-  }
-
-  .letter {
-    min-width: 8vw !important;
-    min-height: 8vw !important;
-  }
-
-  .mobileMessage {
-    text-align: center;
-    margin-bottom: 5vh;
-    font-size: 0.8em;
-  }
-
-}
-
-.resetbtn {
-  background-color: #e9c46a;
-  color: #1a2f38;
-  border: none;
-  max-width: 40%;
-  padding: 2vh 2vw;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 2.5vh;
-  justify-self: center;
-}
-
-.resetbtn:hover {
-  background-color: #f4a261;
-  cursor: pointer;
-}
-
-.container {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-top: 10vh;
-}
-
-.message {
-  opacity: 0;
-  text-align: center;
-  color: #e76f51;
-  margin-bottom: 3vh;
-  transition: opacity cubic-bezier(.08, .82, .17, 1) 1s;
-}
-
-.letterMessage {
-  color: #e9c46a;
-}
-
-.noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Old versions of Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none;
-  /* Non-prefixed version, currently
-                                   supported by Chrome, Edge, Opera and Firefox */
-}
-
-.message:hover {
-  cursor: default;
-}
-
-.grid {
-  justify-self: center;
-  text-align: center;
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  grid-auto-columns: auto;
-}
-
-.letter {
-  border: #7f818d 1px solid;
-  background-color: #1a2f38;
-  height: 10vh;
-  min-width: 5vw;
-  color: #e9c46a;
-  font-size: calc(1.3em + 1vmin);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.letter.CORRECT {
-  background-color: #e9c46a;
-  color: #1a2f38;
-}
-
-.letter.MISPLACED {
-  text-decoration: underline;
-}
-
-.tuto {
-  margin-top: 10vh;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.subtuto {
-  margin-bottom: 3vh;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.subtuto span {
-  margin-left: 1vw;
-}
-
-.streakContainer {
-  margin-top: 3vh;
-}
-</style>
