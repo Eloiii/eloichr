@@ -22,12 +22,28 @@
         <v-row class="mt-16" justify="space-around">
           <v-col cols="2">
             <div class="d-inline-flex justify-center flex-column align-center">
-              <v-btn size="large" @click="newGame">
+              <v-btn size="large" @click="dialog = true" color="primary">
                 <v-icon class="ml-n3 mr-2">
                   mdi-refresh
                 </v-icon>
                 NOUVEAU MOT
               </v-btn>
+              <v-dialog v-model="dialog">
+                <v-card>
+                  <v-card-text>
+                    <v-range-slider label="Longueur du mot" v-model="slider" :min="sliderMin" :max="sliderMax" step="1" class="mx-16">
+                    </v-range-slider>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-btn size="large" @click="newGame(true)" elevation="1">
+                      Conjugué
+                    </v-btn>
+                    <v-btn size="large" @click="newGame(false)" elevation="1">
+                      Non conjugué
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
               <p class="text-h3 text-align mt-5">
                 {{ streak < 0 ? streak + '🥶' : streak + '🔥' }}
               </p>
@@ -36,12 +52,14 @@
           <v-col cols="7" v-if="word && displayableLetters !== [] && displayableLetters[0]?.letter">
             <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
               <v-col v-for="col in word.length" :key="col" cols="1" class="my-3 mx-1 pa-0 pb-1">
-                <v-card tile outlined class="pa-2 text-center" elevation="1"
+                <v-card tile outlined class="pa-2 text-center" elevation="3"
                         :color="(row - 1) < currentGuess && guessedWords[row -1] !== undefined ? guessedWords[row - 1][col-1].color : 'transparent'">
                 <span v-if="(row - 1) === currentGuess"
                       class="text-h2"> {{ displayableLetters[col - 1].letter }} </span>
                   <span v-else-if="(row - 1) < currentGuess"
-                        class="text-h2"> {{ guessedWords[row -1] !== undefined ? guessedWords[row - 1][col - 1].letter : '.'}} </span>
+                        class="text-h2"> {{
+                      guessedWords[row - 1] !== undefined ? guessedWords[row - 1][col - 1].letter : '.'
+                    }} </span>
                   <span v-else class="text-h2"> &nbsp; </span>
                 </v-card>
               </v-col>
@@ -77,12 +95,18 @@ export default {
       streak: 0,
       displayableLetters: [],
       lettersStat: null,
+      dialog: false,
+      sliderMin: 2,
+      sliderMax: 20,
+      slider: [2, 20]
     }
   },
   methods: {
-    async newGame() {
+    async newGame(conjugate) {
+      this.dialog = false
       this.initVars()
-      await this.getNewWord(0, 7, false)
+      console.log(conjugate)
+      // await this.getNewWord(0, 7, conjugate)
       this.initLetterGuesses()
       this.buildDisplayableLetters()
       // this.setMobileEvents()
@@ -123,7 +147,7 @@ export default {
       //space
       if (e.keyCode === 32) {
         e.preventDefault()
-        await this.newGame()
+        await this.newGame(false)
         return
       }
       if (this.isGameOver)
@@ -312,7 +336,7 @@ export default {
   },
   async created() {
     document.addEventListener('keydown', this.parseKeyEvent);
-    this.newGame().then()
+    this.newGame(false).then()
   }
 }
 </script>
