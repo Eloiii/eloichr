@@ -1,6 +1,5 @@
 <template>
   <v-app>
-    <!--  TODO MESSAGE TYPE CHANGER EN FONCTION DU MESSAGE-->
     <!--  TODO AJOUTER OPTION MOT CONJUGUES-->
     <!--  TODO FIX ERREURS DANS CONSOLE-->
     <!--  TODO AJOUTER HISTORIQUE-->
@@ -14,7 +13,7 @@
         </v-row>
         <v-row justify="center" v-if="message.length !== 0">
           <v-col cols="12" md="4">
-            <v-alert :type="messageType"> {{ message }}</v-alert>
+            <v-alert type="error"> {{ message }}</v-alert>
           </v-col>
         </v-row>
         <v-row class="d-sm-none">
@@ -38,11 +37,11 @@
             <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
               <v-col v-for="col in word.length" :key="col" cols="1" class="my-3 mx-1 pa-0 pb-1">
                 <v-card tile outlined class="pa-2 text-center" elevation="1"
-                        :color="(row - 1) < currentGuess ? guessedWords[row - 1][col-1].color : 'transparent'">
+                        :color="(row - 1) < currentGuess && guessedWords[row -1] !== undefined ? guessedWords[row - 1][col-1].color : 'transparent'">
                 <span v-if="(row - 1) === currentGuess"
                       class="text-h2"> {{ displayableLetters[col - 1].letter }} </span>
                   <span v-else-if="(row - 1) < currentGuess"
-                        class="text-h2"> {{ guessedWords[row - 1][col - 1].letter }} </span>
+                        class="text-h2"> {{ guessedWords[row -1] !== undefined ? guessedWords[row - 1][col - 1].letter : '.'}} </span>
                   <span v-else class="text-h2"> &nbsp; </span>
                 </v-card>
               </v-col>
@@ -50,7 +49,6 @@
           </v-col>
           <v-col v-else class="text-center">
             <v-progress-circular indeterminate="true" size="100">
-
             </v-progress-circular>
           </v-col>
           <v-col cols="2">
@@ -71,7 +69,6 @@ export default {
       GUESS_COUNT: 6,
       word: null,
       message: "",
-      messageType: "error",
       isGameOver: false,
       currentGuess: 0,
       guessedLetters: [],
@@ -118,7 +115,7 @@ export default {
         }
         this.getLettersStat()
       } else {
-        this.displayMessage("Erreur lors de la récupération du mot, veuillez réessayer dans quelques instants", true, "error")
+        this.displayMessage("Erreur lors de la récupération du mot, veuillez réessayer dans quelques instants", true)
       }
 
     },
@@ -176,8 +173,7 @@ export default {
       }
       return res
     },
-    displayMessage(text, resetGuess, type) {
-      this.messageType = type
+    displayMessage(text, resetGuess) {
       this.message = text
       if (resetGuess)
         this.currentGuessing = []
@@ -190,7 +186,7 @@ export default {
         const res = this.testWord(guessingword)
         await this.parseRes(res)
       } else {
-        this.displayMessage("Le mot est trop court 😮‍💨", false, "error")
+        this.displayMessage("Le mot est trop court 😮‍💨", false)
       }
     },
     getLettersStat() {
@@ -267,11 +263,11 @@ export default {
       if (res === "NOTAWORD") {
         const completeGuessing = this.mergeArrays(this.currentGuessing, this.guessedLetters)
         const guessingword = completeGuessing.join("")
-        this.displayMessage(guessingword + " n'est pas un mot dans mon dictionnaire 🤨", true, "error")
+        this.displayMessage(guessingword + " n'est pas un mot dans mon dictionnaire 🤨", true)
         return
       }
       if (res === "WRONGFIRSTLETTER") {
-        this.displayMessage("Le mot doit commencer par un " + this.word.firstLetter + " 🙄", true, "error")
+        this.displayMessage("Le mot doit commencer par un " + this.word.firstLetter + " 🙄", true)
         return
       }
       for (let letter = 0; letter < this.word.length; letter++) {
@@ -290,7 +286,7 @@ export default {
     },
     async checkGameOver() {
       if (this.currentGuess >= this.GUESS_COUNT && this.guessedLetters.includes(".")) {
-        this.displayMessage("Perdu... 😔 Le mot était " + this.word.correctWord, false, "error")
+        this.displayMessage("Perdu... 😔 Le mot était " + this.word.correctWord, false)
         this.isGameOver = true
         this.streak - 1 >= 0 ? this.streak = -1 : this.streak -= 1
         // await this.updateHistory(false)
@@ -301,7 +297,6 @@ export default {
           return false
       }
       if (this.currentGuessing.join("") === this.word.correctWord) {
-        this.displayMessage("Bien joué !", false, "success")
         this.guessedWords.push(this.displayableLetters)
         this.currentGuess++
         this.isGameOver = true
