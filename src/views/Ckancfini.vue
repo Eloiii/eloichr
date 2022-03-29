@@ -1,18 +1,22 @@
 <template>
-  <v-container fluid class="d-flex flex-column">
-    <v-row class="mx-10 text-center" align="center" justify="center" style="height: 90vh">
-      <div class="text-md-h1 text-h2">
-        {{ timeRemaining }}
-      </div>
-    </v-row>
-    <v-row justify="center" align="center" class="flex-column mx-10 text-center mb-n16" style="height: 10vh">
-      <div class="text-caption" style="font-size: 1em !important;">
-        {{ citation }}
-      </div>
-      <div class="text-overline">
-        {{ author }}
-      </div>
-    </v-row>
+  <v-container fluid style="height: calc(100vh - 64px);">
+    <v-layout full-height class="d-flex flex-column text-center">
+      <v-row no-gutters="true" class="mx-10 text-center fill-height" align="center" justify="center">
+        <v-col cols="12">
+          <div class="text-md-h1 text-h2">
+            {{ timeRemaining }}
+          </div>
+        </v-col>
+      </v-row>
+      <v-row no-gutters="true" justify="center" align="center" class="d-flex flex-column">
+        <div class="text-caption" style="font-size: 1em !important;">
+          {{ citation }}
+        </div>
+        <div class="text-overline">
+          {{ author }}
+        </div>
+      </v-row>
+    </v-layout>
   </v-container>
 </template>
 
