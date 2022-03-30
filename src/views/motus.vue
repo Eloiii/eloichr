@@ -7,7 +7,7 @@
     <!--  TODO TEST PERDU (6 LIGNES PLEINES SANS TROUVER)-->
     <v-container fluid style="height: calc(100vh - 64px);">
       <v-layout full-height class="d-flex flex-column">
-        <v-row justify="center" style="height: 150px;">
+        <v-row justify="center">
           <h1 class="text-h2">Motus en gros</h1>
         </v-row>
         <v-row justify="center" v-if="message.length !== 0">
@@ -18,7 +18,7 @@
         <v-row class="d-sm-none">
           {{ mobileMessage }}
         </v-row>
-        <v-row class="mt-16" justify="space-around">
+        <v-row justify="space-around">
           <v-col cols="2">
             <div class="d-inline-flex justify-center flex-column align-center">
               <v-btn size="large" @click="dialog = true" color="primary">
@@ -44,7 +44,7 @@
                   </v-card-actions>
                 </v-card>
               </v-dialog>
-              <p class="text-h3 text-align mt-5">
+              <p class="text-h3 text-align mt-10">
                 {{ streak < 0 ? streak + '🥶' : streak + '🔥' }}
               </p>
             </div>
@@ -52,8 +52,8 @@
           <v-col cols="7" v-if="word && displayableLetters !== [] && displayableLetters[0]?.letter">
             <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
               <v-col v-for="col in word.length" :key="col" cols="1" class="my-3 mx-1 pa-0 pb-1">
-                <v-card tile outlined class="pa-2 text-center" elevation="3"
-                        :color="(row - 1) < currentGuess && guessedWords[row -1] !== undefined ? guessedWords[row - 1][col-1].color : 'transparent'">
+                <v-card tile outlined class="pa-2 text-center" elevation="2"
+                        :color="(row - 1) < currentGuess && guessedWords[row -1] !== undefined ? guessedWords[row - 1][col-1].color : 'grey-lighten-2'">
                 <span v-if="(row - 1) === currentGuess"
                       class="text-h2"> {{ displayableLetters[col - 1].letter }} </span>
                   <span v-else-if="(row - 1) < currentGuess"
@@ -107,7 +107,7 @@ export default {
       this.dialog = false
       this.initVars()
       console.log(conjugate)
-      // await this.getNewWord(this.wordLengthMin, this.wordLengthMax, conjugate)
+      await this.getNewWord(this.wordLengthMin, this.wordLengthMax, conjugate)
       this.initLetterGuesses()
       this.buildDisplayableLetters()
       // this.setMobileEvents()
