@@ -5,11 +5,12 @@
       <v-divider></v-divider>
       <v-row justify="space-around" class="cards">
         <v-col v-for="item in items"
-               :key="item.title"
+               :key="item.id"
                cols="12"
-               sm="5"
+               :sm="item.id === items.length - 1 && item.id % 2 === 0 ? '11' : '5'"
         >
           <v-card
+              max-width="430px"
               @click="redirect(item.link)"
           >
             <v-img
@@ -19,7 +20,7 @@
                 :src="item.image"
                 cover
             >
-              <v-card-title>{{ item.title }}</v-card-title>
+              <v-card-title>{{ item.title}}</v-card-title>
             </v-img>
           </v-card>
         </v-col>
@@ -31,6 +32,7 @@
 <script>
 import notesMDImage from '@/assets/md.png'
 import ckancfiniImage from '@/assets/ckancfini.png'
+import motus from '@/assets/motus.jpeg'
 import {defineComponent} from "vue";
 import {useI18n} from "vue-i18n";
 
@@ -46,16 +48,25 @@ export default defineComponent({
     return {
       items: [
         {
+          id: 0,
           title: "Notes MD",
           link: "https://www.md.eloichr.xyz",
           image: notesMDImage,
           text: "white"
         },
         {
+          id: 1,
           title: "C'est quand c'est fini ?",
           link: window.location.href + "ckancfini",
           image: ckancfiniImage,
           text: "black"
+        },
+        {
+          id: 2,
+          title: "C'EST PAS MOTUS",
+          link: window.location.href + "motus",
+          image: motus,
+          text: "white"
         }
       ]
     }

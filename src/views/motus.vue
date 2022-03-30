@@ -16,11 +16,15 @@
           </v-col>
         </v-row>
         <v-row class="d-sm-none">
-          {{ mobileMessage }}
+          <v-col cols="12">
+            <v-alert type="info" density="compact">
+              {{ mobileMessage }}
+            </v-alert>
+          </v-col>
         </v-row>
-        <v-row justify="space-around">
-          <v-col cols="2">
-            <div class="d-inline-flex justify-center flex-column align-center">
+        <v-row justify-md="space-around">
+          <v-col md="2" cols="12">
+            <div class="d-flex justify-center flex-column align-center">
               <v-btn size="large" @click="dialog = true" color="primary">
                 <v-icon class="ml-n3 mr-2">
                   mdi-refresh
@@ -31,7 +35,8 @@
                 <v-card>
                   <v-card-text>
                     Longeur max du mot
-                    <v-slider v-model="wordLengthMax" thumb-label="always" :min="sliderMin" :max="sliderMax" ticks step="1" class="mt-8">
+                    <v-slider v-model="wordLengthMax" thumb-label="always" :min="sliderMin" :max="sliderMax" ticks
+                              step="1" class="mt-8">
                     </v-slider>
                   </v-card-text>
                   <v-card-actions>
@@ -44,23 +49,26 @@
                   </v-card-actions>
                 </v-card>
               </v-dialog>
-              <p class="text-h3 text-align mt-10">
+              <p class="text-md-h3 text-h4 text-align mt-10">
                 {{ streak < 0 ? streak + '🥶' : streak + '🔥' }}
               </p>
             </div>
           </v-col>
-          <v-col cols="7" v-if="word && displayableLetters !== [] && displayableLetters[0]?.letter">
+          <v-col md="7" cols="12" v-if="word && displayableLetters !== [] && displayableLetters[0]?.letter">
             <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
-              <v-col v-for="col in word.length" :key="col" cols="1" class="my-3 mx-1 pa-0 pb-1">
+              <v-col v-for="col in word.length" :key="col" cols="2"  md="1" class="my-md-3 mx-md-1 pa-md-0 pb-md-1 mx-n2">
                 <v-card tile outlined class="pa-2 text-center" elevation="2"
                         :color="(row - 1) < currentGuess && guessedWords[row -1] !== undefined ? guessedWords[row - 1][col-1].color : 'grey-lighten-2'">
                 <span v-if="(row - 1) === currentGuess"
-                      class="text-h2"> {{ displayableLetters[col - 1].letter }} </span>
+                      class="text-md-h2 text-h4"> {{ displayableLetters[col - 1].letter }}
+                </span>
                   <span v-else-if="(row - 1) < currentGuess"
-                        class="text-h2"> {{
+                        class="text-md-h2 text-h4"> {{
                       guessedWords[row - 1] !== undefined ? guessedWords[row - 1][col - 1].letter : '.'
-                    }} </span>
-                  <span v-else class="text-h2"> &nbsp; </span>
+                    }}
+                  </span>
+                  <span v-else class="text-md-h2 text-h4"> &nbsp;
+                  </span>
                 </v-card>
               </v-col>
             </v-row>
@@ -69,7 +77,7 @@
             <v-progress-circular indeterminate="true" size="100">
             </v-progress-circular>
           </v-col>
-          <v-col cols="2">
+          <v-col md="2" cols="12">
             ici c'est l'historique
           </v-col>
         </v-row>
@@ -87,6 +95,7 @@ export default {
       GUESS_COUNT: 6,
       word: null,
       message: "",
+      mobileMessage: "Appuie sur une case pour enter les lettres",
       isGameOver: false,
       currentGuess: 0,
       guessedLetters: [],
@@ -131,6 +140,12 @@ export default {
     async getNewWord(min, max, conjugate) {
       const request = await fetch("https://api.dicolink.com/v1/mots/motauhasard?&minlong=" + min + "&maxlong=" + max + "&verbeconjugue=" + conjugate + "&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU")
       const response = await request.json()
+      // console.log(min, max, conjugate)
+      // const response = [
+      //   {
+      //     mot: "AARBRES"
+      //   }
+      // ]
       if (response) {
         const correctWord = response[0].mot.toUpperCase()
         this.word = {
@@ -183,7 +198,7 @@ export default {
           replacementLetter = this.guessedLetters[letter] || "."
         const data = {
           letter: this.currentGuessing[letter] || replacementLetter,
-          color: this.displayableLetters[letter]?.color || 'transparent'
+          color: this.displayableLetters[letter]?.color || 'grey-lighten-2'
         }
         displayableLetters.push(data)
         this.displayableLetters = displayableLetters
@@ -280,7 +295,7 @@ export default {
         case "MISPLACED":
           return "light-green"
         default:
-          return "transparent"
+          return "grey-lighten-2"
       }
     },
     async parseRes(res) {
