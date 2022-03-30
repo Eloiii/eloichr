@@ -1,6 +1,5 @@
 <template>
   <v-app>
-    <!--  TODO AJOUTER OPTION MOT CONJUGUES-->
     <!--  TODO FIX ERREURS DANS CONSOLE-->
     <!--  TODO AJOUTER HISTORIQUE-->
     <!--  TODO VOIR POUR MOBILE-->
@@ -31,8 +30,9 @@
               <v-dialog v-model="dialog">
                 <v-card>
                   <v-card-text>
-                    <v-range-slider label="Longueur du mot" v-model="slider" :min="sliderMin" :max="sliderMax" step="1" class="mx-16">
-                    </v-range-slider>
+                    Longeur max du mot
+                    <v-slider v-model="wordLengthMax" thumb-label="always" :min="sliderMin" :max="sliderMax" ticks step="1" class="mt-8">
+                    </v-slider>
                   </v-card-text>
                   <v-card-actions>
                     <v-btn size="large" @click="newGame(true)" elevation="1">
@@ -98,7 +98,8 @@ export default {
       dialog: false,
       sliderMin: 2,
       sliderMax: 20,
-      slider: [2, 20]
+      wordLengthMax: 7,
+      wordLengthMin: 2
     }
   },
   methods: {
@@ -106,7 +107,7 @@ export default {
       this.dialog = false
       this.initVars()
       console.log(conjugate)
-      // await this.getNewWord(0, 7, conjugate)
+      // await this.getNewWord(this.wordLengthMin, this.wordLengthMax, conjugate)
       this.initLetterGuesses()
       this.buildDisplayableLetters()
       // this.setMobileEvents()
