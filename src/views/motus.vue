@@ -3,26 +3,19 @@
     <!--  TODO FIX ERREURS DANS CONSOLE-->
     <!--  TODO AJOUTER HISTORIQUE-->
     <!--  TODO VOIR POUR MOBILE-->
-    <!--  TODO FIX LETTRE EN PLUS A LA FIN QUAND GAGNE-->
-    <!--  TODO TEST PERDU (6 LIGNES PLEINES SANS TROUVER)-->
     <v-container fluid style="height: calc(100vh - 64px);">
+      <input type="text" class="mobileInput" style="display: none" @input="parseMobileInput"
+             v-model="currentInputState"/>
       <v-layout full-height class="d-flex flex-column">
-        <v-row justify="center">
-          <h1 class="text-h2">Motus en gros</h1>
+        <v-row justify="center" class="mt-2">
+          <h1 class="text-md-h2 text-h3">Motus en gros</h1>
         </v-row>
-        <v-row justify="center" v-if="message.length !== 0">
+        <v-row justify="center" v-if="message.length !== 0" class="mt-2">
           <v-col cols="12" md="4">
             <v-alert type="error"> {{ message }}</v-alert>
           </v-col>
         </v-row>
-        <v-row class="d-sm-none">
-          <v-col cols="12">
-            <v-alert type="info" density="compact">
-              {{ mobileMessage }}
-            </v-alert>
-          </v-col>
-        </v-row>
-        <v-row justify-md="space-around">
+        <v-row justify-md="space-around" class="mt-2">
           <v-col md="2" cols="12">
             <div class="d-flex justify-center flex-column align-center">
               <v-btn size="large" @click="dialog = true" color="primary">
@@ -56,12 +49,13 @@
           </v-col>
           <v-col md="7" cols="12" v-if="word && displayableLetters !== [] && displayableLetters[0]?.letter">
             <v-row v-for="row in GUESS_COUNT" :key="row" justify="center">
-              <v-col v-for="col in word.length" :key="col" cols="2"  md="1" class="my-md-3 mx-md-1 pa-md-0 pb-md-1 mx-n2">
+              <v-col v-for="col in word.length" :key="col" cols="2" md="1" class="my-md-3 mx-md-1 pa-md-0 pb-md-1 mx-n2"
+                     @click="oui">
                 <v-card tile outlined class="pa-2 text-center" elevation="2"
-                        :color="(row - 1) < currentGuess && guessedWords[row -1] !== undefined ? guessedWords[row - 1][col-1].color : 'grey-lighten-2'">
-                <span v-if="(row - 1) === currentGuess"
-                      class="text-md-h2 text-h4"> {{ displayableLetters[col - 1].letter }}
-                </span>
+                        :color="getCellColor(row, col)">
+                  <span v-if="(row - 1) === currentGuess && !isGameOver"
+                        class="text-md-h2 text-h4"> {{ displayableLetters[col - 1].letter }}
+                  </span>
                   <span v-else-if="(row - 1) < currentGuess"
                         class="text-md-h2 text-h4"> {{
                       guessedWords[row - 1] !== undefined ? guessedWords[row - 1][col - 1].letter : '.'
@@ -83,6 +77,15 @@
         </v-row>
       </v-layout>
     </v-container>
+    <v-snackbar
+        :timeout="5000"
+        v-model="snackBar"
+        class="d-md-none"
+        color="primary"
+        multi-line="true"
+    >
+      {{ mobileMessage }}
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -95,7 +98,7 @@ export default {
       GUESS_COUNT: 6,
       word: null,
       message: "",
-      mobileMessage: "Appuie sur une case pour enter les lettres",
+      mobileMessage: "⚠️ Appuie sur une case pour pouvoir entrer des lettres",
       isGameOver: false,
       currentGuess: 0,
       guessedLetters: [],
@@ -108,19 +111,24 @@ export default {
       sliderMin: 2,
       sliderMax: 20,
       wordLengthMax: 7,
-      wordLengthMin: 2
+      wordLengthMin: 2,
+      snackBar: false,
+      mobileInput: null,
+      currentInputState: ""
     }
   },
   methods: {
     async newGame(conjugate) {
       this.dialog = false
       this.initVars()
-      console.log(conjugate)
       await this.getNewWord(this.wordLengthMin, this.wordLengthMax, conjugate)
       this.initLetterGuesses()
       this.buildDisplayableLetters()
-      // this.setMobileEvents()
+      this.setMobileEvents()
       // this.setStreak()
+    },
+    setMobileEvents() {
+
     },
     initLetterGuesses() {
       for (let letterCount = 0; letterCount < this.word.length - 1; letterCount++) {
@@ -147,7 +155,7 @@ export default {
       //   }
       // ]
       if (response) {
-        const correctWord = response[0].mot.toUpperCase()
+        const correctWord = response[0].mot.toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
         this.word = {
           correctWord: correctWord,
           firstLetter: correctWord.charAt(0),
@@ -188,7 +196,7 @@ export default {
       const displayableLetters = []
       displayableLetters[0] = {
         letter: this.word.firstLetter,
-        color: "green"
+        color: "red"
       }
       for (let letter = 1; letter < this.word.length; letter++) {
         let replacementLetter;
@@ -316,11 +324,11 @@ export default {
           this.guessedLetters[letter] = res[letter].letter
         }
       }
-      this.currentGuess++;
       const gameOver = await this.checkGameOver()
       this.guessedWords.push(this.displayableLetters)
-      this.currentGuessing = []
+      this.currentGuess++;
       if (!gameOver) {
+        this.currentGuessing = []
         this.buildDisplayableLetters()
       }
     },
@@ -337,8 +345,6 @@ export default {
           return false
       }
       if (this.currentGuessing.join("") === this.word.correctWord) {
-        this.guessedWords.push(this.displayableLetters)
-        this.currentGuess++
         this.isGameOver = true
         this.streak + 1 <= 0 ? this.streak = 1 : this.streak += 1
         // await this.updateHistory(true)
@@ -348,11 +354,42 @@ export default {
     },
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    },
+    oui() {
+      // this.mobileInput.style.opacity = "1";
+      // this.mobileInput.focus()
+      // this.mobileInput.style.opacity = "0";
+    },
+    async parseMobileInput() {
+      // this.currentGuessing = this.currentInputState.split("")
+      // this.buildDisplayableLetters()
+    },
+    getCellColor(row, col) {
+      if(row === 1 && col === 1)
+        return 'red-lighten-1'
+      if((row -1) < this.currentGuess && this.guessedWords[row - 1] !== undefined)
+        return this.guessedWords[row - 1][col - 1].color
+      return 'grey-lighten-2'
+      }
+    //   if (this.currentInputState.length > this.mobileInput.value)
+    //     this.currentGuessing.pop()
+    //   else {
+    //     const lastInput = this.mobileInput.value.charAt(this.mobileInput.value.length - 1)
+    //     if ((/[a-zA-Z]/).test(lastInput) && this.currentGuessing.length < this.word.length) {
+    //       this.currentGuessing.push(lastInput.toUpperCase())
+    //     } else if (lastInput === " ")
+    //       await this.validateGuess()
+    //   }
+    //   this.mobileInput.value = ""
+    // }
   },
   async created() {
     document.addEventListener('keydown', this.parseKeyEvent);
     this.newGame(false).then()
+    this.snackBar = true
+  },
+  mounted() {
+    this.mobileInput = document.querySelector('.mobileInput')
   }
 }
 </script>
