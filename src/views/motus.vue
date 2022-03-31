@@ -195,7 +195,7 @@ export default {
     buildDisplayableLetters() {
       const displayableLetters = []
       displayableLetters[0] = {
-        letter: this.word.firstLetter,
+        letter: this.currentGuessing[0] || this.word.firstLetter,
         color: "red"
       }
       for (let letter = 1; letter < this.word.length; letter++) {
@@ -388,8 +388,9 @@ export default {
     this.newGame(false).then()
     this.snackBar = true
   },
-  mounted() {
+  onMounted() {
     this.mobileInput = document.querySelector('.mobileInput')
+    this.$confetti.start();
   }
 }
 </script>
