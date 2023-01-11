@@ -1,31 +1,14 @@
 <template>
-  <v-container fluid style="height: calc(100vh - 64px);">
-    <v-layout full-height class="d-flex flex-column">
-      <h1 class="text-h3 mb-5">{{ t('title') }}</h1>
-      <v-divider></v-divider>
-      <v-row justify="space-around" class="cards">
-        <v-col v-for="item in items"
-               :key="item.id"
-               cols="12"
-               :sm="item.id === items.length - 1 && item.id % 2 === 0 ? '11' : '5'"
-        >
-          <v-card
-              max-width="430px"
-              @click="redirect(item.link)"
-          >
-            <v-img
-                class="align-end"
-                :class="'text-'+item.text"
-                height="200px"
-                :src="item.image"
-                cover
-            >
-              <v-card-title>{{ item.title}}</v-card-title>
-            </v-img>
-          </v-card>
+  <v-container fluid full-height class="padding_au_max">
+    <v-row justify="center">
+        <v-col cols="3" class="flex justify-center">
+            <v-list lines="two" bg-color="transparent">
+                <v-list-item title="Eloi Charra" prepend-avatar="https://media.licdn.com/dms/image/C4D03AQG-gOZ-FaGblw/profile-displayphoto-shrink_800_800/0/1650405270185?e=1678924800&v=beta&t=WirJhlc6-hcYIvgOzrbcGtbUBv6k51KWjIDRr3Q9PB4">
+
+                </v-list-item>
+            </v-list>
         </v-col>
-      </v-row>
-    </v-layout>
+    </v-row>
   </v-container>
 </template>
 
@@ -79,7 +62,12 @@ export default defineComponent({
 })
 </script>
 <style>
-.cards {
-  margin: 5vh 10% 0 10%;
+.padding_au_max {
+    padding-top: 20vh;
+}
+
+.v-avatar {
+    height: 62px !important;
+    width: 62px !important;
 }
 </style>
