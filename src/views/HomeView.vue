@@ -1,26 +1,61 @@
 <template>
   <v-container fluid full-height class="padding_au_max">
     <v-row justify="center">
-        <v-col cols="3" class="flex justify-center">
-            <v-list lines="two" bg-color="transparent">
-                <v-list-item title="Eloi Charra" prepend-avatar="https://media.licdn.com/dms/image/C4D03AQG-gOZ-FaGblw/profile-displayphoto-shrink_800_800/0/1650405270185?e=1678924800&v=beta&t=WirJhlc6-hcYIvgOzrbcGtbUBv6k51KWjIDRr3Q9PB4">
+        <v-col md="2" cols="11" class="flex justify-center">
+            <div class="main_content">
+              <div class="main_content_info">
+                <v-avatar image="https://avatars.githubusercontent.com/u/58401906?v=4" size="75">
 
-                </v-list-item>
-            </v-list>
+                </v-avatar>
+                <div class="main_content_info_name">
+                  <div class="text-h5">
+                    Eloi Charra
+                  </div>
+                  <div class="text-body-2 text-grey">
+                    Computer Science student
+                  </div>
+                  <div class="text-caption">
+                    <a href="https://github.com/Eloiii" class="text-decoration-none text-grey-darken-1">github.com/Eloiii</a>
+                  </div>
+                </div>
+              </div>
+              <div class="main_content_projects">
+                <div class="mb-5 text-h6">Where to go ?</div>
+                <div class="main_content_projects_project" v-for="project in items" :key="project.id">
+                  <div>
+                    <v-avatar size="large" :image="project.image">
+
+                    </v-avatar>
+                  </div>
+                  <div class="main_content_projects_project_info">
+                    <div>
+                      <v-hover>
+                        <template v-slot:default="{ isHovering, props }">
+                          <a v-bind="props" class="text-subtitle-1 text-white" :class="isHovering ? '' : 'text-decoration-none'" :href="project.link">{{ project.title }}</a>
+                          <svg class="ml-2 mb-n1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" stroke="#ffffff" fill="#ffffff"><path d="M5.062 15 4 13.938 12.438 5.5H5V4h10v10h-1.5V6.562Z"/></svg>
+                        </template>
+                      </v-hover>
+                    </div>
+                    <div class="text-caption text-grey">
+                      {{ project.desc }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
         </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import notesMDImage from '@/assets/md.png'
-import ckancfiniImage from '@/assets/ckancfini.png'
-import motus from '@/assets/motus.jpeg'
 import {defineComponent} from "vue";
 import {useI18n} from "vue-i18n";
+import ArrowTrCircle from 'iconoir/icons/arrow-tr-circle.svg'
 
 export default defineComponent({
   name: 'HomeView',
+  components: ArrowTrCircle,
   setup() {
     const {t} = useI18n();
     return {
@@ -32,24 +67,24 @@ export default defineComponent({
       items: [
         {
           id: 0,
-          title: "Notes MD",
+          title: "HedgeDoc",
+          desc: "Markdown notes",
           link: "https://www.md.eloichr.xyz",
-          image: notesMDImage,
-          text: "white"
+          image: "https://framalibre.org/sites/default/files/styles/thumbnail/public/leslogos/HedgeDoc-Logo%201.png?itok=5O-YNFNh",
         },
         {
           id: 1,
           title: "C'est quand c'est fini ?",
           link: window.location.href + "ckancfini",
-          image: ckancfiniImage,
-          text: "black"
+          desc: "...",
+          image: "https://media.istockphoto.com/id/866655750/fr/vectoriel/sablier.jpg?b=1&s=170667a&w=0&k=20&c=6pZvnnYvK80_OWkTfyZ9iwL6gUWzcU9AX2IrF4TOdds=",
         },
         {
           id: 2,
-          title: "C'EST PAS MOTUS",
+          title: "Motus",
+          desc: "It's not Motus",
           link: window.location.href + "motus",
-          image: motus,
-          text: "white"
+          image: "https://static1.purepeople.com/articles/2/33/78/62/@/4817276-exclusif-thierry-beccaro-backstage-d-624x600-1.jpg",
         }
       ]
     }
@@ -61,13 +96,36 @@ export default defineComponent({
   }
 })
 </script>
-<style>
+<style lang="scss">
 .padding_au_max {
     padding-top: 20vh;
 }
 
-.v-avatar {
-    height: 62px !important;
-    width: 62px !important;
+.main_content {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+
+  .main_content_info {
+    display: flex;
+    align-items: center;
+
+    .main_content_info_name {
+      margin-left: 5%;
+    }
+  }
+
+  .main_content_projects {
+    margin-top: 10%;
+
+    .main_content_projects_project {
+      display: flex;
+      margin-bottom: 8%;
+
+      .main_content_projects_project_info {
+        margin-left: 5%;
+      }
+    }
+  }
 }
 </style>
