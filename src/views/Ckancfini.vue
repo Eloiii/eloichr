@@ -36,7 +36,7 @@ export default {
     },
     displayRemainingTime() {
       const today = new Date()
-      const end = new Date(2024, 6, 1)
+      const end = new Date(2024, 8, 1)
 
       const msRemaining = (end - today)
       const daysRemaining = Math.floor(msRemaining / (24 * 60 * 60 * 1000))
