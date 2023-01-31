@@ -24,7 +24,7 @@
                 </v-icon>
                 NOUVEAU MOT
               </v-btn>
-              <v-dialog v-model="dialog">
+              <v-dialog v-model="dialog" width="500">
                 <v-card>
                   <v-card-text>
                     Longeur max du mot
@@ -72,7 +72,17 @@
             </v-progress-circular>
           </v-col>
           <v-col md="2" cols="12">
-            ici c'est l'historique
+            <div class="text-h6">
+              Historique
+            </div>
+            <v-list dense class="mt-5">
+              <v-list-item v-for="word in history" :key="word.word">
+                <v-list-item>
+                  <v-icon> {{word.guessed ? 'mdi-check' : 'mdi-close'}}</v-icon>
+                  {{word.word}}
+                </v-list-item>
+              </v-list-item>
+            </v-list>
           </v-col>
         </v-row>
       </v-layout>
@@ -114,7 +124,8 @@ export default {
       wordLengthMin: 2,
       snackBar: false,
       mobileInput: null,
-      currentInputState: ""
+      currentInputState: "",
+      history: []
     }
   },
   methods: {
@@ -122,9 +133,11 @@ export default {
       this.dialog = false
       this.initVars()
       await this.getNewWord(this.wordLengthMin, this.wordLengthMax, conjugate)
-      this.initLetterGuesses()
-      this.buildDisplayableLetters()
-      this.setMobileEvents()
+      if(this.word) {
+        this.initLetterGuesses()
+        this.buildDisplayableLetters()
+        this.setMobileEvents()
+      }
       // this.setStreak()
     },
     setMobileEvents() {
@@ -147,13 +160,11 @@ export default {
     },
     async getNewWord(min, max, conjugate) {
       const request = await fetch("https://api.dicolink.com/v1/mots/motauhasard?&minlong=" + min + "&maxlong=" + max + "&verbeconjugue=" + conjugate + "&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU")
+      if(request.status === 429) {
+        this.displayMessage("Bah là en gros j'ai plus de crédit quoi", true)
+        return
+      }
       const response = await request.json()
-      // console.log(min, max, conjugate)
-      // const response = [
-      //   {
-      //     mot: "AARBRES"
-      //   }
-      // ]
       if (response) {
         const correctWord = response[0].mot.toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
         this.word = {
@@ -234,7 +245,7 @@ export default {
         const res = this.testWord(guessingword)
         await this.parseRes(res)
       } else {
-        this.displayMessage("Le mot est trop court 😮‍💨", false)
+        this.displayMessage("Le mot est trop court", false)
       }
     },
     getLettersStat() {
@@ -252,15 +263,20 @@ export default {
     async wordExists(word) {
       const link = "https://api.dicolink.com/v1/mot/" + word + "/definitions?limite=200&api_key=fBN0OBotLQVWC2gFdE501ACc0W62XtxU"
       const request = await fetch(link)
+      if(request.status === 429)
+        return 429
       const response = await request.json()
-      return response.error === undefined && response?.status !== 429
+      return response.error
 
     },
     async testWord(word) {
       if (word.charAt(0) !== this.word.correctWord.charAt(0))
         return "WRONGFIRSTLETTER"
       const doesWordExist = await this.wordExists(word)
-      if (!doesWordExist)
+      console.log(doesWordExist)
+      if(doesWordExist === 429)
+        return "NOCREDIT"
+      else if(doesWordExist !== undefined)
         return "NOTAWORD"
       let res = []
       for (let i = 0; i < word.length; i++) {
@@ -311,11 +327,15 @@ export default {
       if (res === "NOTAWORD") {
         const completeGuessing = this.mergeArrays(this.currentGuessing, this.guessedLetters)
         const guessingword = completeGuessing.join("")
-        this.displayMessage(guessingword + " n'est pas un mot dans mon dictionnaire 🤨", true)
+        this.displayMessage(guessingword + " n'est pas un mot dans mon dictionnaire", true)
         return
       }
       if (res === "WRONGFIRSTLETTER") {
-        this.displayMessage("Le mot doit commencer par un " + this.word.firstLetter + " 🙄", true)
+        this.displayMessage("Le mot doit commencer par un " + this.word.firstLetter, true)
+        return
+      }
+      if (res === "NOCREDIT") {
+        this.displayMessage("Bah là en gros j'ai plus de crédit quoi",true)
         return
       }
       for (let letter = 0; letter < this.word.length; letter++) {
@@ -324,9 +344,9 @@ export default {
           this.guessedLetters[letter] = res[letter].letter
         }
       }
+      this.currentGuess++;
       const gameOver = await this.checkGameOver()
       this.guessedWords.push(this.displayableLetters)
-      this.currentGuess++;
       if (!gameOver) {
         this.currentGuessing = []
         this.buildDisplayableLetters()
@@ -334,10 +354,10 @@ export default {
     },
     async checkGameOver() {
       if (this.currentGuess >= this.GUESS_COUNT && this.guessedLetters.includes(".")) {
-        this.displayMessage("Perdu... 😔 Le mot était " + this.word.correctWord, false)
+        this.displayMessage("Bah non le mot c'était " + this.word.correctWord, false)
         this.isGameOver = true
         this.streak - 1 >= 0 ? this.streak = -1 : this.streak -= 1
-        // await this.updateHistory(false)
+        this.updateHistory(false)
         return true
       }
       for (let guessedLetter of this.guessedLetters) {
@@ -347,10 +367,19 @@ export default {
       if (this.currentGuessing.join("") === this.word.correctWord) {
         this.isGameOver = true
         this.streak + 1 <= 0 ? this.streak = 1 : this.streak += 1
-        // await this.updateHistory(true)
+        this.updateHistory(true)
         return true
       }
       return false
+    },
+    updateHistory(guessed) {
+      let history = JSON.parse(sessionStorage.getItem("history"))
+      history.push({
+        word: this.word.correctWord,
+        guessed: guessed
+      })
+      this.history = history
+      sessionStorage.setItem("history", JSON.stringify(history))
     },
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -387,6 +416,9 @@ export default {
     document.addEventListener('keydown', this.parseKeyEvent);
     this.newGame(false).then()
     this.snackBar = true
+    this.history = JSON.parse(sessionStorage.getItem("history"))
+    if(this.history === null || this.history === undefined || this.history.length === 0)
+      sessionStorage.setItem("history", JSON.stringify([]))
   },
   onMounted() {
     this.mobileInput = document.querySelector('.mobileInput')
