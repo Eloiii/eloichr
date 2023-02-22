@@ -2,6 +2,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 import HomeView from "@/views/HomeView";
 import Ckancfini from "@/views/Ckancfini";
 import motus from "@/views/motus";
+import TagEnMieux from "@/views/TagEnMieux";
 
 const routes = [
     {
@@ -18,6 +19,11 @@ const routes = [
         path: '/motus',
         name: 'motus-en-gros',
         component: motus
+    },
+    {
+        path: '/tag',
+        name: 'tag-en-mieux',
+        component: TagEnMieux
     }
 ]
 

@@ -20,5 +20,6 @@ pnpm-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
+.firebase
 *.sw?
 package-lock.json
