@@ -1,108 +1,51 @@
 <template>
-  <v-container class="padding_au_max" fluid full-height>
-    <v-row justify="center">
-      <v-col class="flex justify-center" cols="11" md="6">
-        <v-card variant="outlined">
-          <v-card-title>
-            14 &ndash; Maison Communale vers Verdun
-          </v-card-title>
-          <v-card-text v-if="data['maisonCom']">
-            <v-icon icon="mdi-signal-disconnected" v-if="!data['maisonCom'].realtime"></v-icon>
-            <v-icon icon="mdi-access-point" v-else></v-icon>
-            Arrive à {{data["maisonCom"].arrivalTime.toLocaleTimeString()}}
-            dans {{maisonComTimeRemaining}}
-          </v-card-text>
-          <v-card-text v-else>
-            <v-progress-circular
-                indeterminate
-            ></v-progress-circular>
-          </v-card-text>
-        </v-card>
+  <v-container fluid full-height>
+    <v-row v-if="Object.keys(data).length > 0" justify="center">
+      <v-col v-for="stop of data" :key="stop" cols="12">
+        <tagCard :data="stop" :title="stop.name"/>
       </v-col>
-      <v-col class="flex justify-center" cols="11" md="6">
-        <v-card variant="outlined">
-          <v-card-title>
-            14 &ndash; Verdun
-          </v-card-title>
-          <v-card-text v-if="data['verdun']">
-            <v-icon icon="mdi-signal-disconnected" v-if="!data['verdun'].realtime"></v-icon>
-            <v-icon icon="mdi-access-point" v-else></v-icon>
-            Arrive à {{data["verdun"].arrivalTime.toLocaleTimeString()}}
-            dans {{verdunTimeRemaining}}
-          </v-card-text>
-          <v-card-text v-else>
-            <v-progress-circular
-                indeterminate
-            ></v-progress-circular>
-          </v-card-text>
-        </v-card>
-      </v-col>
+    </v-row>
+    <v-row v-else justify="center">
+      <v-progress-circular
+          indeterminate
+      ></v-progress-circular>
     </v-row>
   </v-container>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue'
+import {onMounted, ref} from 'vue'
+import TagCard from "@/views/TagCard.vue";
 
 let data = ref({})
-const maisonComTimeRemaining = ref("")
-const verdunTimeRemaining = ref("")
+
 
 onMounted(async () => {
   const res = {}
-  const maisonCom = await get14MaisonCommunaleToVerdun()
-  const verdun = await get14Verdun()
-
+  const maisonCom = await getDataFromApi("SEM:GENMAISONCO", "SEM:14:0:14_R_36")
+  const verdun = await getDataFromApi("SEM:GENVERDUN", "SEM:14:1:14_A_37")
+  const dMaisonCom = await getDataFromApi("SEM:GENMAISONCO", "SEM:D:0:D_R_1")
+  const dTaillees = await getDataFromApi("SEM:GENTAILLEES", "SEM:D:1:D_A_4")
 
   res["verdun"] = verdun
   res["maisonCom"] = maisonCom
+  res["dMaisonCom"] = dMaisonCom
+  res["dTaillees"] = dTaillees
 
   data.value = res
-
-  setInterval(() => {
-    maisonComTimeRemaining.value = getTimeBetween(res["maisonCom"].arrivalTime, new Date())
-  }, 1000)
-  setInterval(() => {
-    verdunTimeRemaining.value = getTimeBetween(res["verdun"].arrivalTime, new Date())
-  }, 1000)
 })
-async function get14MaisonCommunaleToVerdun() {
-  const response = await fetch('https://data.mobilites-m.fr/api/routers/default/index/clusters/SEM:GENMAISONCO/stoptimes')
+
+async function getDataFromApi(stopName, routeName) {
+  const response = await fetch('https://data.mobilites-m.fr/api/routers/default/index/clusters/' + stopName + '/stoptimes')
   const fullData = await response.json()
-  const ligne14_maison_to_verdun = fullData.filter(p => p.pattern.id === "SEM:14:0:14_R_36")[0]
-  const nextArrival = ligne14_maison_to_verdun.times[0]
+  // console.log(fullData)
+  const route = fullData.filter(p => p.pattern.id === routeName)[0]
+  const nextArrival = route.times[0]
   return {
+    name: route.pattern.id.split(":")[1] + " // " + nextArrival.stopName.split(",")[1].trim() + " direction " + route.pattern.shortDesc,
     realtime: nextArrival.realtime,
-    arrivalTime: new Date(new Date().setHours(0, 0, nextArrival.realtime ? nextArrival.realtimeArrival + 3600 : nextArrival.scheduledArrival + 3600, 0))
+    arrivalTime: new Date(new Date().setHours(0, 0, nextArrival.realtime ? nextArrival.realtimeArrival : nextArrival.scheduledArrival, 0)),
+    scheduledArrival: new Date(new Date().setHours(0, 0, nextArrival.scheduledArrival, 0))
   }
 }
-
-async function get14Verdun() {
-  const response = await fetch('https://data.mobilites-m.fr/api/routers/default/index/clusters/SEM:GENVERDUN/stoptimes')
-  const fullData = await response.json()
-  const ligne14_maison_to_verdun = fullData.filter(p => p.pattern.id === "SEM:14:1:14_A_37")[0]
-  const nextArrival = ligne14_maison_to_verdun.times[0]
-  return {
-    realtime: nextArrival.realtime,
-    arrivalTime: new Date(new Date().setHours(0, 0, nextArrival.realtime ? nextArrival.realtimeArrival + 3600 : nextArrival.scheduledArrival + 3600, 0))
-  }
-}
-
-function getTimeBetween(date1, date2) {
-  const msRemaining = (date2 - date1)
-  const hoursms = msRemaining % (60 * 60 * 1000);
-  const minutesRemaining = Math.floor(hoursms / (60 * 1000));
-  const minutesms = msRemaining % (60 * 1000);
-  const secondsRemaining = Math.floor(minutesms / 1000);
-
-  return Math.abs(minutesRemaining) + ":" + Math.abs(secondsRemaining)
-}
-
-
 </script>
-<style>
-.padding_au_max {
-  padding-top: 20vh;
-}
-
-</style>
