@@ -1,8 +1,23 @@
 <template>
   <v-container fluid full-height>
+    <v-row>
+      <v-col>
+        <div class="text-caption">
+         dernière mise à jour : {{lastUpdate.toLocaleDateString("fr-FR", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZoneName: "short"
+        })}}
+        </div>
+      </v-col>
+    </v-row>
     <v-row v-if="Object.keys(data).length > 0" justify="center">
-      <v-col v-for="stop of data" :key="stop" cols="12">
-        <tagCard :data="stop" :title="stop.name"/>
+      <v-col v-for="stop of data" :key="stop.arrivalTime" cols="12">
+        <tagCard :data="stop" :title="stop.name" :key="stop.arrivalTime"/>
       </v-col>
     </v-row>
     <v-row v-else justify="center">
@@ -18,9 +33,9 @@ import {onMounted, ref} from 'vue'
 import TagCard from "@/views/TagCard.vue";
 
 let data = ref({})
+const lastUpdate = ref(new Date())
 
-
-onMounted(async () => {
+async function getData() {
   const res = {}
   const maisonCom = await getDataFromApi("SEM:GENMAISONCO", "SEM:14:0:14_R_36")
   const verdun = await getDataFromApi("SEM:GENVERDUN", "SEM:14:1:14_A_37")
@@ -33,6 +48,11 @@ onMounted(async () => {
   res["dTaillees"] = dTaillees
 
   data.value = res
+  lastUpdate.value = new Date()
+}
+onMounted(async () => {
+  await getData()
+  setInterval(() => getData(), 30000)
 })
 
 async function getDataFromApi(stopName, routeName) {
