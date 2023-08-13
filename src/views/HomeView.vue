@@ -9,10 +9,7 @@
             </v-avatar>
             <div class="main_content_info_name">
               <div class="text-h5">
-                Eloi Charra
-              </div>
-              <div class="text-body-2 text-grey">
-                Computer Science student
+                Eloi Chr.
               </div>
               <div class="text-caption">
                 <a class="text-decoration-none text-grey-darken-1"
@@ -74,7 +71,7 @@ const items = ref([
   {
     id: 2,
     title: "Motus",
-    desc: "C'est vraiment pas motus promis",
+    desc: "Bon bah voilà quoi",
     link: window.location.href + "motus",
     image: "https://static1.purepeople.com/articles/2/33/78/62/@/4817276-exclusif-thierry-beccaro-backstage-d-624x600-1.jpg",
   }

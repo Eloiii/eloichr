@@ -31,10 +31,6 @@ displayRemainingTime()
 setInterval(displayRemainingTime, 1000)
 displayQuote()
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
-
 function displayRemainingTime() {
   const today = new Date()
   const end = new Date(2024, 8, 1)
@@ -51,15 +47,16 @@ function displayRemainingTime() {
 }
 
 async function getQuote() {
-  const response = await fetch("https://type.fit/api/quotes")
+  const response = await fetch("https://api.quotable.io/quotes/random")
   const res = await response.json()
-  return res[getRandomInt(res.length)]
+  return res[0]
 }
 
 async function displayQuote() {
   const quote = await getQuote()
+  console.log(quote)
   author.value = quote.author
-  citation.value = quote.text
+  citation.value = quote.content
 }
 </script>
 
